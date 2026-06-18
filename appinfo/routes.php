@@ -32,7 +32,8 @@ return [
 		['name' => 'board#transferOwner', 'url' => '/boards/{boardId}/transferOwner', 'verb' => 'PUT'],
 		['name' => 'board#export', 'url' => '/boards/{boardId}/export', 'verb' => 'GET'],
 		['name' => 'board#import', 'url' => '/boards/import', 'verb' => 'POST'],
-
+          ['name' => 'board#archiveCompleted', 'url' => '/boards/{boardId}/archiveCompleted', 'verb' => 'PUT'],
+	
 		// stacks
 		['name' => 'stack#index', 'url' => '/stacks/{boardId}', 'verb' => 'GET'],
 		['name' => 'stack#create', 'url' => '/stacks', 'verb' => 'POST'],
