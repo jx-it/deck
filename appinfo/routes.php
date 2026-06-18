@@ -42,6 +42,7 @@ return [
 		['name' => 'stack#delete', 'url' => '/stacks/{stackId}', 'verb' => 'DELETE'],
 		['name' => 'stack#deleted', 'url' => '/{boardId}/stacks/deleted', 'verb' => 'GET'],
 		['name' => 'stack#archived', 'url' => '/stacks/{boardId}/archived', 'verb' => 'GET'],
+		['name' => 'stack#cloneAsTemplate', 'url' => '/stacks/{stackId}/cloneAsTemplate', 'verb' => 'POST'],
 
 		// cards
 		['name' => 'card#read', 'url' => '/cards/{cardId}', 'verb' => 'GET'],
