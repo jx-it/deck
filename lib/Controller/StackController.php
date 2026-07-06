@@ -13,7 +13,8 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\IRequest;
 
-class StackController extends Controller {
+class StackController extends Controller
+{
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -26,7 +27,8 @@ class StackController extends Controller {
 	 * @return Stack[]
 	 */
 	#[NoAdminRequired]
-	public function index(int $boardId): array {
+	public function index(int $boardId): array
+	{
 		return $this->stackService->findAll($boardId);
 	}
 
@@ -34,17 +36,20 @@ class StackController extends Controller {
 	 * @return Stack[]
 	 */
 	#[NoAdminRequired]
-	public function archived(int $boardId): array {
+	public function archived(int $boardId): array
+	{
 		return $this->stackService->findAllArchived($boardId);
 	}
 
 	#[NoAdminRequired]
-	public function create(string $title, int $boardId, int $order = 999): Stack {
+	public function create(string $title, int $boardId, int $order = 999): Stack
+	{
 		return $this->stackService->create($title, $boardId, $order);
 	}
 
 	#[NoAdminRequired]
-	public function update(int $id, string $title, int $boardId, int $order, ?int $deletedAt = null): Stack {
+	public function update(int $id, string $title, int $boardId, int $order, ?int $deletedAt = null): Stack
+	{
 		return $this->stackService->update($id, $title, $boardId, $order, $deletedAt);
 	}
 
@@ -52,12 +57,14 @@ class StackController extends Controller {
 	 * @return array<int, Stack>
 	 */
 	#[NoAdminRequired]
-	public function reorder(int $stackId, int $order): array {
+	public function reorder(int $stackId, int $order): array
+	{
 		return $this->stackService->reorder($stackId, $order);
 	}
 
 	#[NoAdminRequired]
-	public function delete(int $stackId): Stack {
+	public function delete(int $stackId): Stack
+	{
 		return $this->stackService->delete($stackId);
 	}
 
@@ -65,8 +72,23 @@ class StackController extends Controller {
 	 * @return Stack[]
 	 */
 	#[NoAdminRequired]
-	public function deleted(int $boardId): array {
+	public function deleted(int $boardId): array
+	{
 		return $this->stackService->fetchDeleted($boardId);
+	}
+
+	/**
+	 * Clone a stack as a template with date shifting and text replacement
+	 */
+	#[NoAdminRequired]
+	public function cloneAsTemplate(int $stackId): DataResponse
+	{
+		$targetBoardId = $this->request->getParam('targetBoardId');
+		$dateShift = $this->request->getParam('dateShift');
+		$textReplacements = $this->request->getParam('textReplacements');
+
+		$newStack = $this->stackService->cloneAsTemplate($stackId, $targetBoardId, $dateShift, $textReplacements);
+		return new DataResponse($newStack, HTTP::STATUS_OK);
 	}
 
 }

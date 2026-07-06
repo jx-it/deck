@@ -23,7 +23,8 @@ use function Sabre\HTTP\parseDate;
  *
  * @package OCA\Deck\Controller
  */
-class StackApiController extends ApiController {
+class StackApiController extends ApiController
+{
 	/**
 	 * @param string $appName
 	 */
@@ -41,7 +42,8 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function index(): DataResponse {
+	public function index(): DataResponse
+	{
 		$since = 0;
 		$modified = $this->request->getHeader('If-Modified-Since');
 		if ($modified !== '') {
@@ -61,7 +63,8 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function get(): DataResponse {
+	public function get(): DataResponse
+	{
 		$stack = $this->stackService->find($this->request->getParam('stackId'));
 		$response = new DataResponse($stack, HTTP::STATUS_OK);
 		$response->setETag($stack->getETag());
@@ -74,7 +77,8 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function create(string $title, int $order): DataResponse {
+	public function create(string $title, int $order): DataResponse
+	{
 		$stack = $this->stackService->create($title, $this->request->getParam('boardId'), $order);
 		return new DataResponse($stack, HTTP::STATUS_OK);
 	}
@@ -85,7 +89,8 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function update(string $title, int $order) {
+	public function update(string $title, int $order)
+	{
 		$stack = $this->stackService->update($this->request->getParam('stackId'), $title, $this->request->getParam('boardId'), $order, 0);
 		return new DataResponse($stack, HTTP::STATUS_OK);
 	}
@@ -96,7 +101,8 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function delete(): DataResponse {
+	public function delete(): DataResponse
+	{
 		$stack = $this->stackService->delete($this->request->getParam('stackId'));
 		return new DataResponse($stack, HTTP::STATUS_OK);
 	}
@@ -107,8 +113,25 @@ class StackApiController extends ApiController {
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
-	public function getArchived(): DataResponse {
+	public function getArchived(): DataResponse
+	{
 		$stacks = $this->stackService->findAllArchived($this->request->getParam('boardId'));
 		return new DataResponse($stacks, HTTP::STATUS_OK);
+	}
+
+	/**
+	 * Clone a stack as a template with date shifting and text replacement
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 */
+	public function cloneAsTemplate(): DataResponse
+	{
+		$stackId = $this->request->getParam('stackId');
+		$dateShift = $this->request->getParam('dateShift');
+		$textReplacements = $this->request->getParam('textReplacements');
+
+		$newStack = $this->stackService->cloneAsTemplate($stackId, $dateShift, $textReplacements);
+		return new DataResponse($newStack, HTTP::STATUS_OK);
 	}
 }
