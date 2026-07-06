@@ -27,7 +27,8 @@ use OCA\Deck\Validators\StackServiceValidator;
 use OCP\EventDispatcher\IEventDispatcher;
 use Psr\Log\LoggerInterface;
 
-class StackService {
+class StackService
+{
 	public function __construct(
 		private readonly StackMapper $stackMapper,
 		private readonly BoardMapper $boardMapper,
@@ -47,8 +48,9 @@ class StackService {
 	}
 
 	/** @param Stack[] $stacks */
-	private function enrichStacksWithCards(array $stacks, int $since = -1): void {
-		$cardsByStackId = $this->cardMapper->findAllForStacks(array_map(fn (Stack $stack) => $stack->getId(), $stacks), null, 0, $since);
+	private function enrichStacksWithCards(array $stacks, int $since = -1): void
+	{
+		$cardsByStackId = $this->cardMapper->findAllForStacks(array_map(fn(Stack $stack) => $stack->getId(), $stacks), null, 0, $since);
 
 		foreach ($cardsByStackId as $stackId => $cards) {
 			if (!$cards) {
@@ -69,18 +71,19 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function find(int $stackId): Stack {
+	public function find(int $stackId): Stack
+	{
 		$this->permissionService->checkPermission($this->stackMapper, $stackId, Acl::PERMISSION_READ);
 		$stack = $this->stackMapper->find($stackId);
 
 		$allCards = $this->cardMapper->findAll($stackId);
-		$cardIds = array_map(fn (Card $card) => $card->getId(), $allCards);
+		$cardIds = array_map(fn(Card $card) => $card->getId(), $allCards);
 		$attachmentCounts = $this->attachmentService->countForCards($cardIds);
 		$assignedUsers = $this->assignedUsersMapper->findIn($cardIds);
 
 		$cards = array_map(
 			function (Card $card) use ($attachmentCounts, $assignedUsers): CardDetails {
-				$cardAssignedUsers = array_values(array_filter($assignedUsers, fn ($a) => $a->getCardId() === $card->getId()));
+				$cardAssignedUsers = array_values(array_filter($assignedUsers, fn($a) => $a->getCardId() === $card->getId()));
 				$card->setAssignedUsers($cardAssignedUsers);
 				$card->setAttachmentCount($attachmentCounts[$card->getId()] ?? 0);
 
@@ -99,7 +102,8 @@ class StackService {
 	 * @throws \OCA\Deck\NoPermissionException
 	 * @throws BadRequestException
 	 */
-	public function findAll(int $boardId, int $since = -1): array {
+	public function findAll(int $boardId, int $since = -1): array
+	{
 		$this->permissionService->checkPermission(null, $boardId, Acl::PERMISSION_READ);
 		$stacks = $this->stackMapper->findAll($boardId);
 		$this->enrichStacksWithCards($stacks, $since);
@@ -111,7 +115,8 @@ class StackService {
 	 * @return Stack[]
 	 * @throws \OCP\DB\Exception
 	 */
-	public function findCalendarEntries(int $boardId): array {
+	public function findCalendarEntries(int $boardId): array
+	{
 		try {
 			$this->permissionService->checkPermission(null, $boardId, Acl::PERMISSION_READ);
 		} catch (NoPermissionException $e) {
@@ -125,7 +130,8 @@ class StackService {
 	 * @return Stack[]
 	 * @throws \OCP\DB\Exception
 	 */
-	public function fetchDeleted(int $boardId): array {
+	public function fetchDeleted(int $boardId): array
+	{
 		$this->permissionService->checkPermission($this->boardMapper, $boardId, Acl::PERMISSION_READ);
 		$stacks = $this->stackMapper->findDeleted($boardId);
 		$this->enrichStacksWithCards($stacks);
@@ -138,12 +144,13 @@ class StackService {
 	 * @throws \OCA\Deck\NoPermissionException
 	 * @throws BadRequestException
 	 */
-	public function findAllArchived(int $boardId): array {
+	public function findAllArchived(int $boardId): array
+	{
 		$this->permissionService->checkPermission(null, $boardId, Acl::PERMISSION_READ);
 		$stacks = $this->stackMapper->findAll($boardId);
 		$labels = $this->labelMapper->getAssignedLabelsForBoard($boardId);
 
-		$stackIds = array_map(fn (Stack $stack) => $stack->getId(), $stacks);
+		$stackIds = array_map(fn(Stack $stack) => $stack->getId(), $stacks);
 
 		// Fetch all archived cards for all stacks in a single query
 		$cardsByStackId = $this->cardMapper->findAllArchivedForStacks($stackIds);
@@ -179,7 +186,8 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function create(string $title, int $boardId, int $order): Stack {
+	public function create(string $title, int $boardId, int $order): Stack
+	{
 		$this->stackServiceValidator->check(compact('title', 'boardId', 'order'));
 
 		$this->permissionService->checkPermission(null, $boardId, Acl::PERMISSION_MANAGE);
@@ -192,7 +200,11 @@ class StackService {
 		$stack->setOrder($order);
 		$stack = $this->stackMapper->insert($stack);
 		$this->activityManager->triggerEvent(
-			ActivityManager::DECK_OBJECT_BOARD, $stack, ActivityManager::SUBJECT_STACK_CREATE, [], $this->permissionService->getUserId()
+			ActivityManager::DECK_OBJECT_BOARD,
+			$stack,
+			ActivityManager::SUBJECT_STACK_CREATE,
+			[],
+			$this->permissionService->getUserId()
 		);
 		$this->changeHelper->boardChanged($boardId);
 		$this->eventDispatcher->dispatchTyped(new BoardUpdatedEvent($boardId));
@@ -207,7 +219,8 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function delete(int $id): Stack {
+	public function delete(int $id): Stack
+	{
 		$this->permissionService->checkPermission($this->stackMapper, $id, Acl::PERMISSION_MANAGE);
 
 		$stack = $this->stackMapper->find($id);
@@ -215,7 +228,11 @@ class StackService {
 		$stack = $this->stackMapper->update($stack);
 
 		$this->activityManager->triggerEvent(
-			ActivityManager::DECK_OBJECT_BOARD, $stack, ActivityManager::SUBJECT_STACK_DELETE, [], $this->permissionService->getUserId()
+			ActivityManager::DECK_OBJECT_BOARD,
+			$stack,
+			ActivityManager::SUBJECT_STACK_DELETE,
+			[],
+			$this->permissionService->getUserId()
 		);
 		$this->changeHelper->boardChanged($stack->getBoardId());
 		$this->eventDispatcher->dispatchTyped(new BoardUpdatedEvent($stack->getBoardId()));
@@ -231,7 +248,8 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function update(int $id, string $title, int $boardId, int $order, ?int $deletedAt): Stack {
+	public function update(int $id, string $title, int $boardId, int $order, ?int $deletedAt): Stack
+	{
 		$this->stackServiceValidator->check(compact('id', 'title', 'boardId', 'order'));
 
 		$this->permissionService->checkPermission($this->stackMapper, $id, Acl::PERMISSION_MANAGE);
@@ -250,7 +268,9 @@ class StackService {
 		$changes->setAfter($stack);
 		$stack = $this->stackMapper->update($stack);
 		$this->activityManager->triggerUpdateEvents(
-			ActivityManager::DECK_OBJECT_BOARD, $changes, ActivityManager::SUBJECT_STACK_UPDATE
+			ActivityManager::DECK_OBJECT_BOARD,
+			$changes,
+			ActivityManager::SUBJECT_STACK_UPDATE
 		);
 		$this->changeHelper->boardChanged($stack->getBoardId());
 		$this->eventDispatcher->dispatchTyped(new BoardUpdatedEvent($stack->getBoardId()));
@@ -265,13 +285,14 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function reorder(int $id, int $order): array {
+	public function reorder(int $id, int $order): array
+	{
 		$this->stackServiceValidator->check(compact('id', 'order'));
 
 		$this->permissionService->checkPermission($this->stackMapper, $id, Acl::PERMISSION_MANAGE);
 		$stackToSort = $this->stackMapper->find($id);
 		$stacks = $this->stackMapper->findAll($stackToSort->getBoardId());
-		usort($stacks, static fn (Stack $stackA, Stack $stackB) => $stackA->getOrder() - $stackB->getOrder());
+		usort($stacks, static fn(Stack $stackA, Stack $stackB) => $stackA->getOrder() - $stackB->getOrder());
 		$result = [];
 		$i = 0;
 		foreach ($stacks as $stack) {
@@ -304,7 +325,8 @@ class StackService {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws BadRequestException
 	 */
-	public function setDoneStack(int $stackId, int $boardId, bool $isDone): void {
+	public function setDoneStack(int $stackId, int $boardId, bool $isDone): void
+	{
 		$this->permissionService->checkPermission($this->stackMapper, $stackId, Acl::PERMISSION_MANAGE);
 
 		if ($this->boardService->isArchived($this->stackMapper, $stackId)) {
@@ -326,5 +348,146 @@ class StackService {
 		$this->stackMapper->setIsDoneColumn($stackId, $isDone);
 		$this->changeHelper->boardChanged($boardId);
 		$this->eventDispatcher->dispatchTyped(new BoardUpdatedEvent($boardId));
+	}
+
+	/**
+	 * Clone a stack as a template with date and text modifications
+	 *
+	 * @param int $stackId The stack ID to clone
+	 * @param int|null $targetBoardId The target board ID (null = same board as source)
+	 * @param array $dateShift Array with 'months' and 'days' keys for date shifting
+	 * @param array $textReplacements Array of ['search' => '', 'replace' => ''] arrays
+	 * @return Stack The newly created stack
+	 * @throws NoPermissionException
+	 * @throws \OCP\AppFramework\Db\DoesNotExistException
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
+	 * @throws BadRequestException
+	 * @throws StatusException
+	 */
+	public function cloneAsTemplate(int $stackId, ?int $targetBoardId, array $dateShift, array $textReplacements): Stack
+	{
+		// Don't validate stackId in array since it's a direct parameter
+		// $this->stackServiceValidator->check(compact('stackId'));
+
+		// Check read permission for the source stack
+		$this->permissionService->checkPermission($this->stackMapper, $stackId, Acl::PERMISSION_READ);
+
+		// Get the source stack
+		$sourceStack = $this->stackMapper->find($stackId);
+		$sourceBoardId = $sourceStack->getBoardId();
+
+		// Determine target board (default to source board if not specified)
+		$boardId = $targetBoardId ?? $sourceBoardId;
+
+		// Check manage permission for the target board
+		$this->permissionService->checkPermission(null, $boardId, Acl::PERMISSION_MANAGE);
+
+		if ($this->boardService->isArchived(null, $boardId)) {
+			throw new StatusException('Operation not allowed. This board is archived.');
+		}
+
+		// Create the new stack
+		$newStack = new Stack();
+		$newStack->setTitle($sourceStack->getTitle() . ' (Copy)');
+		$newStack->setBoardId($boardId);
+
+		// Set order as the last stack in the board
+		$allStacks = $this->stackMapper->findAll($boardId);
+		$maxOrder = 0;
+		foreach ($allStacks as $stack) {
+			if ($stack->getOrder() > $maxOrder) {
+				$maxOrder = $stack->getOrder();
+			}
+		}
+		$newStack->setOrder($maxOrder + 1);
+
+		// Insert the new stack
+		$newStack = $this->stackMapper->insert($newStack);
+
+		// Clone all cards from the source stack
+		$sourceCards = $this->cardMapper->findAll($stackId);
+
+		foreach ($sourceCards as $sourceCard) {
+			$newCard = new Card();
+
+			// Apply text replacements to title and description
+			$title = $sourceCard->getTitle();
+			$description = $sourceCard->getDescription();
+
+			foreach ($textReplacements as $replacement) {
+				if (!empty($replacement['search']) && isset($replacement['replace'])) {
+					$title = str_replace($replacement['search'], $replacement['replace'], $title);
+					$description = str_replace($replacement['search'], $replacement['replace'], $description);
+				}
+			}
+
+			$newCard->setTitle($title);
+			$newCard->setDescription($description);
+			$newCard->setStackId($newStack->getId());
+			$newCard->setType($sourceCard->getType());
+			$newCard->setOwner($sourceCard->getOwner());
+			$newCard->setOrder($sourceCard->getOrder());
+
+			// Apply date shift to due date
+			$dueDate = $sourceCard->getDuedate();
+			if ($dueDate !== null) {
+				try {
+					// getDuedate() already returns a DateTime object, not a string
+					if ($dueDate instanceof \DateTime) {
+						$date = clone $dueDate; // Clone to avoid modifying original
+					} else {
+						$date = new \DateTime($dueDate);
+					}
+
+					// Add months
+					if (!empty($dateShift['months'])) {
+						$months = (int) $dateShift['months'];
+						$date->modify("{$months} months");
+					}
+
+					// Add days
+					if (!empty($dateShift['days'])) {
+						$days = (int) $dateShift['days'];
+						$date->modify("{$days} days");
+					}
+
+					$newCard->setDuedate($date->format('Y-m-d H:i:s'));
+				} catch (\Exception $e) {
+					// If date parsing fails, don't set a due date
+					$newCard->setDuedate(null);
+				}
+			}
+
+			// Don't copy archived status or done status
+			$newCard->setArchived(false);
+			$newCard->setDone(null);
+
+			// Insert the new card
+			$newCard = $this->cardMapper->insert($newCard);
+
+			// Copy labels
+			$labels = $this->labelMapper->findAssignedLabelsForCard($sourceCard->getId());
+			foreach ($labels as $label) {
+				$this->cardMapper->assignLabel($newCard->getId(), $label->getId());
+			}
+
+			// Copy assignments
+			$assignments = $this->assignedUsersMapper->findAll($sourceCard->getId());
+			foreach ($assignments as $assignment) {
+				$this->assignmentService->assignUser($newCard->getId(), $assignment->getParticipant(), $assignment->getType());
+			}
+		}
+
+		// Trigger events
+		$this->activityManager->triggerEvent(
+			ActivityManager::DECK_OBJECT_BOARD,
+			$newStack,
+			ActivityManager::SUBJECT_STACK_CREATE
+		);
+		$this->changeHelper->boardChanged($boardId);
+		$this->eventDispatcher->dispatchTyped(new BoardUpdatedEvent($boardId));
+
+		// Return the new stack with cards
+		return $this->find($newStack->getId());
 	}
 }
