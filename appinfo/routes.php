@@ -32,8 +32,8 @@ return [
 		['name' => 'board#transferOwner', 'url' => '/boards/{boardId}/transferOwner', 'verb' => 'PUT'],
 		['name' => 'board#export', 'url' => '/boards/{boardId}/export', 'verb' => 'GET'],
 		['name' => 'board#import', 'url' => '/boards/import', 'verb' => 'POST'],
-          ['name' => 'board#archiveCompleted', 'url' => '/boards/{boardId}/archiveCompleted', 'verb' => 'PUT'],
-	
+		['name' => 'board#archiveCompleted', 'url' => '/boards/{boardId}/archiveCompleted', 'verb' => 'PUT'],
+
 		// stacks
 		['name' => 'stack#index', 'url' => '/stacks/{boardId}', 'verb' => 'GET'],
 		['name' => 'stack#create', 'url' => '/stacks', 'verb' => 'POST'],
@@ -88,9 +88,9 @@ return [
 		['name' => 'board_api#deleteAcl', 'url' => '/api/v{apiVersion}/boards/{boardId}/acl/{aclId}', 'verb' => 'DELETE'],
 		['name' => 'board_api#updateAcl', 'url' => '/api/v{apiVersion}/boards/{boardId}/acl/{aclId}', 'verb' => 'PUT'],
 
-		['name' => 'board_import_api#getAllowedSystems', 'url' => '/api/v{apiVersion}/boards/import/getSystems','verb' => 'GET'],
-		['name' => 'board_import_api#getConfigSchema', 'url' => '/api/v{apiVersion}/boards/import/config/schema/{name}','verb' => 'GET'],
-		['name' => 'board_import_api#import', 'url' => '/api/v{apiVersion}/boards/import','verb' => 'POST'],
+		['name' => 'board_import_api#getAllowedSystems', 'url' => '/api/v{apiVersion}/boards/import/getSystems', 'verb' => 'GET'],
+		['name' => 'board_import_api#getConfigSchema', 'url' => '/api/v{apiVersion}/boards/import/config/schema/{name}', 'verb' => 'GET'],
+		['name' => 'board_import_api#import', 'url' => '/api/v{apiVersion}/boards/import', 'verb' => 'POST'],
 
 		['name' => 'stack_api#index', 'url' => '/api/v{apiVersion}/boards/{boardId}/stacks', 'verb' => 'GET'],
 		['name' => 'stack_api#getArchived', 'url' => '/api/v{apiVersion}/boards/{boardId}/stacks/archived', 'verb' => 'GET'],
@@ -134,7 +134,7 @@ return [
 		['name' => 'attachment_api_v11#delete', 'url' => '/api/v{apiVersion}/boards/{boardId}/stacks/{stackId}/cards/{cardId}/attachments/{type}/{attachmentId}', 'verb' => 'DELETE', 'requirements' => ['apiVersion' => '1.1']],
 		['name' => 'attachment_api_v11#restore', 'url' => '/api/v{apiVersion}/boards/{boardId}/stacks/{stackId}/cards/{cardId}/attachments/{type}/{attachmentId}/restore', 'verb' => 'PUT', 'requirements' => ['apiVersion' => '1.1']],
 
-		['name' => 'board_api#preflighted_cors', 'url' => '/api/v{apiVersion}/{path}','verb' => 'OPTIONS', 'requirements' => ['path' => '.+']],
+		['name' => 'board_api#preflighted_cors', 'url' => '/api/v{apiVersion}/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']],
 	],
 	'ocs' => [
 		['name' => 'board_ocs#index', 'url' => '/api/v{apiVersion}/boards', 'verb' => 'GET'],
