@@ -6,6 +6,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { OverviewApi } from '../services/OverviewApi.js'
+import moment from '@nextcloud/moment'
 Vue.use(Vuex)
 
 const apiClient = new OverviewApi()
@@ -22,6 +23,33 @@ export default {
 	mutations: {
 		setAssignedCards(state, assignedCards) {
 			state.assignedCards = assignedCards
+		},
+		moveUpcomingCard(state, { cardId, sourceFilter, targetFilter, targetIndex }) {
+			const sourceArray = state.assignedCards[sourceFilter]
+			if (!sourceArray) return
+			const cardIndex = sourceArray.findIndex(c => c.id === cardId)
+			if (cardIndex === -1) return
+			
+			const [card] = sourceArray.splice(cardIndex, 1)
+			
+			if (targetFilter === 'overdue') {
+				card.duedate = moment().subtract(1, 'days').endOf('day').toISOString()
+			} else if (targetFilter === 'today') {
+				card.duedate = moment().endOf('day').toISOString()
+			} else if (targetFilter === 'tomorrow') {
+				card.duedate = moment().add(1, 'days').endOf('day').toISOString()
+			} else if (targetFilter === 'nextSevenDays') {
+				card.duedate = moment().add(3, 'days').endOf('day').toISOString()
+			} else if (targetFilter === 'later') {
+				card.duedate = moment().add(14, 'days').endOf('day').toISOString()
+			} else if (targetFilter === 'nodue') {
+				card.duedate = null
+			}
+			
+			if (!state.assignedCards[targetFilter]) {
+				Vue.set(state.assignedCards, targetFilter, [])
+			}
+			state.assignedCards[targetFilter].splice(targetIndex, 0, card)
 		},
 		setLoading(state, promise) {
 			state.loading = promise
