@@ -18,7 +18,11 @@ export default {
 	},
 	methods: {
 		closeSidebar() {
-			this.$router.push({ name: 'board' })
+			if (this.$route.name === 'upcoming.card') {
+				this.$router.push({ name: 'upcoming' })
+			} else {
+				this.$router.push({ name: 'board' })
+			}
 		},
 		onClickOutside(e) {
 			if (e.target?.dataset?.clickClosesSidebar) {

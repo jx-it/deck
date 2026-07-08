@@ -85,7 +85,7 @@ export default {
 		// TODO: properly handle sidebar showing for route subview and board sidebar
 		sidebarRouterView() {
 			// console.log(this.$route)
-			return this.$route.name === 'card' || this.$route.name === 'board.details'
+			return this.$route.name === 'card' || this.$route.name === 'upcoming.card' || this.$route.name === 'board.details'
 		},
 		sidebarShown() {
 			return this.sidebarRouterView || this.sidebarShownState
@@ -121,7 +121,11 @@ export default {
 	},
 	methods: {
 		hideModal() {
-			this.$router.push({ name: 'board' })
+			if (this.$route.name === 'upcoming.card') {
+				this.$router.push({ name: 'upcoming' })
+			} else {
+				this.$router.push({ name: 'board' })
+			}
 		},
 	},
 }

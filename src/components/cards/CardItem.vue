@@ -245,7 +245,11 @@ export default {
 			const boardId = this.card && this.card.boardId ? this.card.boardId : (this.$route?.params.id ?? this.currentBoard.id)
 
 			if (this.$router) {
-				this.$router.push({ name: 'card', params: { id: boardId, cardId: this.card.id } }).catch(() => {})
+				if (this.$route.name === 'upcoming' || this.$route.name === 'upcoming.card') {
+					this.$router.push({ name: 'upcoming.card', params: { cardId: this.card.id } }).catch(() => {})
+				} else {
+					this.$router.push({ name: 'card', params: { id: boardId, cardId: this.card.id } }).catch(() => {})
+				}
 				return
 			}
 
