@@ -210,7 +210,7 @@ export default {
 				if (newCard && (!oldCard || newCard.id !== oldCard.id)) {
 					this.focusHeader()
 				}
-				if (newCard && (!this.currentBoard || this.currentBoard.id !== newCard.boardId)) {
+				if (newCard && newCard.boardId && (!this.currentBoard || this.currentBoard.id !== newCard.boardId)) {
 					this.$store.dispatch('loadBoardById', newCard.boardId)
 				}
 			},
@@ -248,7 +248,7 @@ export default {
 			if (this.$route.name === 'upcoming.card') {
 				this.$router?.push({ name: 'upcoming' })
 			} else {
-				this.$router?.push({ name: 'board' })
+				this.$router?.push({ name: 'board', params: { id: this.$route.params.id } })
 			}
 			this.$emit('close')
 		},

@@ -124,7 +124,7 @@ export default {
 			if (this.$route.name === 'upcoming.card') {
 				this.$router.push({ name: 'upcoming' })
 			} else {
-				this.$router.push({ name: 'board' })
+				this.$router.push({ name: 'board', params: { id: this.$route.params.id } })
 			}
 		},
 	},
