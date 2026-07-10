@@ -288,6 +288,17 @@ export default function cardModuleFactory() {
 				commit('addCard', createdCard)
 				return createdCard
 			},
+			async archiveDoneCards({ commit, state, rootState }) {
+				const currentBoard = rootState.currentBoard
+				if (!currentBoard) return
+				const doneCards = state.cards.filter(
+					card => card.done !== null && card.done !== undefined && !card.archived,
+				)
+				for (const card of doneCards) {
+					const updatedCard = await apiClient.archiveCard(card)
+					commit('updateCard', updatedCard)
+				}
+			},
 			async updateCardTitle({ commit, getters }, card) {
 				const stack = getters.stackById(card.stackId)
 				const boardId = card.boardId || stack?.boardId

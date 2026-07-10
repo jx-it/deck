@@ -247,6 +247,14 @@
 						</template>
 						{{ showArchived ? t('deck', 'Hide archived cards') : t('deck', 'Show archived cards') }}
 					</NcActionButton>
+					<NcActionButton v-if="board && canEdit && !showArchived && !board.archived"
+						close-after-click
+						@click="archiveDoneCards">
+						<template #icon>
+							<CheckAllIcon :size="20" decorative />
+						</template>
+						{{ t('deck', 'Archive all done cards') }}
+					</NcActionButton>
 					<NcActionButton v-if="compactMode"
 						@click="toggleCompactMode">
 						<ArrowExpandVerticalIcon slot="icon" :size="20" decorative />
@@ -290,6 +298,7 @@ import ArrowCollapseVerticalIcon from 'vue-material-design-icons/ArrowCollapseVe
 import ArrowExpandVerticalIcon from 'vue-material-design-icons/ArrowExpandVertical.vue'
 import ViewColumnIcon from 'vue-material-design-icons/ViewColumn.vue'
 import ChartGanttIcon from 'vue-material-design-icons/ChartGantt.vue'
+import CheckAllIcon from 'vue-material-design-icons/CheckAll.vue'
 import SessionList from './SessionList.vue'
 import { isNotifyPushEnabled } from '../sessions.js'
 import CreateNewCardCustomPicker from '../views/CreateNewCardCustomPicker.vue'
@@ -316,6 +325,7 @@ export default {
 		NcActionSeparator,
 		TableColumnPlusAfter,
 		SessionList,
+		CheckAllIcon,
 	},
 	mixins: [labelStyle],
 	props: {
@@ -432,6 +442,9 @@ export default {
 		},
 		toggleShowArchived() {
 			this.$store.dispatch('toggleShowArchived')
+		},
+		async archiveDoneCards() {
+			await this.$store.dispatch('archiveDoneCards')
 		},
 		addNewStack() {
 			this.stack = { title: this.newStackTitle }
