@@ -23,18 +23,13 @@
 					</h3>
 				</div>
 				<div class="dashboard-column__list">
-					<template v-if="columnProps.sort === false">
-						<CardItem v-for="card in filterCards(columnProps.filter)"
-							:id="card.id"
-							:key="card.id"
-							show-board-badge />
-					</template>
-					<template v-else>
-						<CardItem v-for="card in sortCards(filterCards(columnProps.filter))"
-							:id="card.id"
-							:key="card.id"
-							show-board-badge />
-					</template>
+					<Container :get-child-payload="payloadForColumn(columnProps.filter, columnProps.sort)"
+						group-name="overview-columns"
+						@drop="($event) => onDropCard(columnProps.filter, $event)">
+						<Draggable v-for="card in getCardsForColumn(columnProps.filter, columnProps.sort)" :key="card.id">
+							<CardItem :id="card.id" show-board-badge />
+						</Draggable>
+					</Container>
 				</div>
 			</div>
 		</div>
@@ -48,6 +43,8 @@ import Controls from '../Controls.vue'
 import CardItem from '../cards/CardItem.vue'
 import { mapGetters } from 'vuex'
 import GlobalSearchResults from '../search/GlobalSearchResults.vue'
+import { Container, Draggable } from 'vue-smooth-dnd'
+import moment from '@nextcloud/moment'
 
 const FILTER_UPCOMING = 'upcoming'
 
@@ -89,6 +86,8 @@ export default {
 		GlobalSearchResults,
 		Controls,
 		CardItem,
+		Container,
+		Draggable,
 	},
 	props: {
 		filter: {
@@ -150,6 +149,73 @@ export default {
 				})
 			}
 		},
+		getCardsForColumn(filter, sort) {
+			const cards = this.filterCards(filter)
+			if (!cards) {
+				return []
+			}
+			return sort === false ? cards : this.sortCards(cards) || []
+		},
+		payloadForColumn(filter, sort) {
+			return index => {
+				const cards = this.getCardsForColumn(filter, sort)
+				return cards ? cards[index] : null
+			}
+		},
+		async onDropCard(targetFilter, event) {
+			const { addedIndex, removedIndex, payload } = event
+			if (addedIndex !== null) {
+				const card = payload
+				if (!card) return
+
+				// Find the source filter
+				let sourceFilter = null
+				const assignedCards = this.assignedCardsDashboard
+				for (const filter in assignedCards) {
+					if (assignedCards[filter] && assignedCards[filter].some(c => c.id === card.id)) {
+						sourceFilter = filter
+						break
+					}
+				}
+
+				if (!sourceFilter) return
+
+				// Commit mutation to update UI immediately
+				this.$store.commit('moveUpcomingCard', {
+					cardId: card.id,
+					sourceFilter,
+					targetFilter,
+					targetIndex: addedIndex,
+				})
+
+				// Calculate new duedate to save
+				let newDueDate = null
+				if (targetFilter === 'overdue') {
+					newDueDate = moment().subtract(1, 'days').endOf('day').toISOString()
+				} else if (targetFilter === 'today') {
+					newDueDate = moment().endOf('day').toISOString()
+				} else if (targetFilter === 'tomorrow') {
+					newDueDate = moment().add(1, 'days').endOf('day').toISOString()
+				} else if (targetFilter === 'nextSevenDays') {
+					newDueDate = moment().add(3, 'days').endOf('day').toISOString()
+				} else if (targetFilter === 'later') {
+					newDueDate = moment().add(14, 'days').endOf('day').toISOString()
+				} else if (targetFilter === 'nodue') {
+					newDueDate = null
+				}
+
+				try {
+					await this.$store.dispatch('updateCardDue', {
+						...card,
+						duedate: newDueDate,
+					})
+				} catch (e) {
+					console.error(e)
+					// If it fails, reload the upcoming cards
+					this.$store.dispatch('loadUpcoming')
+				}
+			}
+		},
 	},
 
 }
@@ -181,6 +247,7 @@ export default {
 		flex-direction: column;
 		flex: 0 1 $card-max-width;
 		min-width: $card-min-width;
+		min-height: 0;
 
 		.dashboard-column__header {
 			display: flex;
@@ -226,11 +293,27 @@ export default {
 			$margin-x: calc($stack-gap * -1);
 			display: flex;
 			flex-direction: column;
-			gap: $stack-gap;
 			padding: $stack-gap;
 			margin: 0 $margin-x;
 			overflow-y: auto;
 			scrollbar-gutter: stable;
+			flex-grow: 1;
+		}
+
+		:deep(.smooth-dnd-container.vertical) {
+			display: flex;
+			flex-direction: column;
+			gap: $stack-gap;
+			flex-grow: 1;
+			min-height: 80px;
+		}
+
+		:deep(.smooth-dnd-container.vertical > .smooth-dnd-draggable-wrapper) {
+			overflow: initial;
+		}
+
+		:deep(.smooth-dnd-container.vertical .smooth-dnd-draggable-wrapper) {
+			height: auto;
 		}
 	}
 }
