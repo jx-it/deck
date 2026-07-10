@@ -87,8 +87,12 @@ export default {
 				return
 			}
 
-			if (this.$route.name === 'card' && key.code === 'Escape') {
-				this.$router.push({ name: 'board' })
+			if ((this.$route.name === 'card' || this.$route.name === 'upcoming.card') && key.code === 'Escape') {
+				if (this.$route.name === 'upcoming.card') {
+					this.$router.push({ name: 'upcoming' })
+				} else {
+					this.$router.push({ name: 'board' })
+				}
 				return
 			}
 

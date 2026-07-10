@@ -21,7 +21,8 @@ class BoardSummary extends Board {
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),
-			'title' => $this->getTitle()
+			'title' => $this->getTitle(),
+			'color' => $this->getColor(),
 		];
 	}
 

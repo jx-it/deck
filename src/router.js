@@ -35,7 +35,33 @@ const router = new Router({
 		{
 			path: '/upcoming',
 			name: 'upcoming',
-			component: Overview,
+			components: {
+				default: Overview,
+				sidebar: Sidebar,
+			},
+			children: [
+				{
+					path: 'card/:cardId/:tabId?/:tabQuery?',
+					name: 'upcoming.card',
+					components: {
+						sidebar: CardSidebar,
+					},
+					props: {
+						default: (route) => {
+							return {
+								cardId: parseInt(route.params.cardId, 10),
+							}
+						},
+						sidebar: (route) => {
+							return {
+								id: parseInt(route.params.cardId, 10),
+								tabId: route.params.tabId,
+								tabQuery: route.params.tabQuery,
+							}
+						},
+					},
+				},
+			],
 		},
 		{
 			path: '/overview/:filter',

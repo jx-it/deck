@@ -155,4 +155,15 @@ class BoardApiController extends ApiController {
 			$this->boardService->clone($boardId, $this->userId, $withCards, $withAssignments, $withLabels, $withDueDate, $moveCardsToLeftStack, $restoreArchivedCards)
 		);
 	}
+     /**
+	 * Archive all completed cards in the board
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 */
+	public function archiveCompleted(): DataResponse {
+		$boardId = $this->request->getParam('boardId');
+		$result = $this->boardService->archiveCompletedCards($boardId);
+		return new DataResponse($result, HTTP::STATUS_OK);
+	}
 }

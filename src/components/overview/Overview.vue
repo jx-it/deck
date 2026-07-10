@@ -26,12 +26,14 @@
 					<template v-if="columnProps.sort === false">
 						<CardItem v-for="card in filterCards(columnProps.filter)"
 							:id="card.id"
-							:key="card.id" />
+							:key="card.id"
+							show-board-badge />
 					</template>
 					<template v-else>
 						<CardItem v-for="card in sortCards(filterCards(columnProps.filter))"
 							:id="card.id"
-							:key="card.id" />
+							:key="card.id"
+							show-board-badge />
 					</template>
 				</div>
 			</div>

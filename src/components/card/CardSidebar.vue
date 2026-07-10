@@ -204,9 +204,16 @@ export default {
 		},
 	},
 	watch: {
-		currentCard(newCard, oldCard) {
-			if (newCard.id === oldCard.id) return
-			this.focusHeader()
+		currentCard: {
+			immediate: true,
+			handler(newCard, oldCard) {
+				if (newCard && (!oldCard || newCard.id !== oldCard.id)) {
+					this.focusHeader()
+				}
+				if (newCard && newCard.boardId && (!this.currentBoard || this.currentBoard.id !== newCard.boardId)) {
+					this.$store.dispatch('loadBoardById', newCard.boardId)
+				}
+			},
 		},
 		'currentCard.title': {
 			immediate: true,
@@ -238,7 +245,11 @@ export default {
 				showWarning(t('deck', 'Cannot close unsaved card!'))
 				return
 			}
-			this.$router?.push({ name: 'board' })
+			if (this.$route.name === 'upcoming.card') {
+				this.$router?.push({ name: 'upcoming' })
+			} else {
+				this.$router?.push({ name: 'board', params: { id: this.$route.params.id } })
+			}
 			this.$emit('close')
 		},
 

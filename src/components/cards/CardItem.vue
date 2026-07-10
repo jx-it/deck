@@ -18,6 +18,11 @@
 				<div :style="{backgroundColor: '#' + board.color}" class="board-bullet" dir="auto" />
 				{{ board.title }} » {{ stack.title }}
 			</div>
+			<div v-if="showBoardBadge && board && !compactMode" class="board-badge-container">
+				<span class="board-badge" :style="boardBadgeStyle" dir="auto">
+					{{ board.title }}
+				</span>
+			</div>
 			<CardCover v-if="showCardCover" :card-id="card.id" />
 			<div class="card-upper">
 				<h4 v-if="editingTitle === 0" key="title-view" dir="auto">
@@ -120,6 +125,10 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		showBoardBadge: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	data() {
 		return {
@@ -139,7 +148,16 @@ export default {
 			'isArchived',
 		]),
 		board() {
-			return this.$store.getters.boardById(this?.stack?.boardId)
+			return this.$store.getters.boardById(this?.card?.boardId || this?.stack?.boardId) || this.card?.board
+		},
+		boardBadgeStyle() {
+			if (!this.board || !this.board.color) {
+				return {}
+			}
+			return {
+				backgroundColor: '#' + this.board.color,
+				color: this.textColor(this.board.color),
+			}
 		},
 		stack() {
 			return this.$store.getters.stackById(this?.card?.stackId)
@@ -227,7 +245,11 @@ export default {
 			const boardId = this.card && this.card.boardId ? this.card.boardId : (this.$route?.params.id ?? this.currentBoard.id)
 
 			if (this.$router) {
-				this.$router.push({ name: 'card', params: { id: boardId, cardId: this.card.id } }).catch(() => {})
+				if (this.$route.name === 'upcoming' || this.$route.name === 'upcoming.card') {
+					this.$router.push({ name: 'upcoming.card', params: { cardId: this.card.id } }).catch(() => {})
+				} else {
+					this.$router.push({ name: 'card', params: { id: boardId, cardId: this.card.id } }).catch(() => {})
+				}
 				return
 			}
 
@@ -433,6 +455,22 @@ export default {
 			.labels {
 				flex-wrap: wrap;
 				align-self: flex-start;
+			}
+		}
+		.board-badge-container {
+			display: flex;
+			margin-bottom: 2px;
+
+			.board-badge {
+				display: inline-block;
+				font-size: 11px;
+				font-weight: bold;
+				padding: 2px 8px;
+				border-radius: var(--border-radius-pill);
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				max-width: 100%;
 			}
 		}
 	}
